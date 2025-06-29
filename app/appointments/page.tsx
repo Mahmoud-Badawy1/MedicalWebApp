@@ -8,7 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Calendar, 
   Clock, 
@@ -31,6 +33,14 @@ export default function AppointmentsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<AppointmentStatus | 'all'>('all');
+  const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [bookingForm, setBookingForm] = useState({
+    type: 'in-person' as 'in-person' | 'video' | 'phone',
+    reason: '',
+    preferredDate: '',
+    preferredTime: '',
+    notes: ''
+  });
   const router = useRouter();
 
   useEffect(() => {
@@ -135,8 +145,26 @@ export default function AppointmentsPage() {
   };
 
   const handleBookAppointment = () => {
-    console.log('Booking new appointment');
-    alert('Appointment booking form would open here');
+    setIsBookingDialogOpen(true);
+  };
+
+  const handleBookingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Booking appointment:', bookingForm);
+    
+    // Here you would typically send the data to your API
+    // For now, we'll just show a success message and close the dialog
+    alert('Appointment request submitted successfully! You will receive a confirmation shortly.');
+    
+    // Reset form and close dialog
+    setBookingForm({
+      type: 'in-person',
+      reason: '',
+      preferredDate: '',
+      preferredTime: '',
+      notes: ''
+    });
+    setIsBookingDialogOpen(false);
   };
 
   const handleJoinVideoCall = (appointmentId: string) => {
@@ -263,10 +291,101 @@ export default function AppointmentsPage() {
                 }
               </p>
             </div>
-            <Button className="flex items-center space-x-2" onClick={handleBookAppointment}>
-              <Plus className="w-4 h-4" />
-              <span>Book Appointment</span>
-            </Button>
+            
+            {/* Book Appointment Dialog */}
+            <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="flex items-center space-x-2" onClick={handleBookAppointment}>
+                  <Plus className="w-4 h-4" />
+                  <span>Book Appointment</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Book New Appointment</DialogTitle>
+                  <DialogDescription>
+                    Schedule a new appointment with your healthcare provider
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <form onSubmit={handleBookingSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="type">Appointment Type</Label>
+                    <select
+                      id="type"
+                      value={bookingForm.type}
+                      onChange={(e) => setBookingForm(prev => ({ ...prev, type: e.target.value as any }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="in-person">In-Person Visit</option>
+                      <option value="video">Video Consultation</option>
+                      <option value="phone">Phone Consultation</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="reason">Reason for Visit</Label>
+                    <Input
+                      id="reason"
+                      value={bookingForm.reason}
+                      onChange={(e) => setBookingForm(prev => ({ ...prev, reason: e.target.value }))}
+                      placeholder="e.g., Annual checkup, Follow-up, Consultation"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="preferredDate">Preferred Date</Label>
+                      <Input
+                        id="preferredDate"
+                        type="date"
+                        value={bookingForm.preferredDate}
+                        onChange={(e) => setBookingForm(prev => ({ ...prev, preferredDate: e.target.value }))}
+                        min={new Date().toISOString().split('T')[0]}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="preferredTime">Preferred Time</Label>
+                      <Input
+                        id="preferredTime"
+                        type="time"
+                        value={bookingForm.preferredTime}
+                        onChange={(e) => setBookingForm(prev => ({ ...prev, preferredTime: e.target.value }))}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Additional Notes (Optional)</Label>
+                    <textarea
+                      id="notes"
+                      value={bookingForm.notes}
+                      onChange={(e) => setBookingForm(prev => ({ ...prev, notes: e.target.value }))}
+                      placeholder="Any additional information or special requests..."
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="flex space-x-3 pt-4">
+                    <Button type="submit" className="flex-1">
+                      Book Appointment
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setIsBookingDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Search and Filters */}
