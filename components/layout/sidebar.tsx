@@ -89,7 +89,7 @@ const navigationItems: NavItem[] = [
     roles: ['patient', 'doctor', 'pharmacy'],
     children: [
       { title: 'My Prescriptions', href: '/prescriptions', icon: Pill, roles: ['patient'] },
-      { title: 'E-Prescribe', href: '/prescriptions/create', icon: Pill, roles: ['doctor'] },
+      { title: 'E-Prescribe', href: '/prescriptions', icon: Pill, roles: ['doctor'] },
       { title: 'Pharmacy Queue', href: '/prescriptions/queue', icon: Pill, roles: ['pharmacy'] },
       { title: 'Inventory', href: '/prescriptions/inventory', icon: Pill, roles: ['pharmacy'] },
     ],
