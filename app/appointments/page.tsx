@@ -23,7 +23,10 @@ import {
   User,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  Edit,
+  X
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Appointment, AppointmentStatus } from '@/types';
@@ -34,12 +37,20 @@ export default function AppointmentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<AppointmentStatus | 'all'>('all');
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [isRescheduleDialogOpen, setIsRescheduleDialogOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [bookingForm, setBookingForm] = useState({
     type: 'in-person' as 'in-person' | 'video' | 'phone',
     reason: '',
     preferredDate: '',
     preferredTime: '',
     notes: ''
+  });
+  const [rescheduleForm, setRescheduleForm] = useState({
+    newDate: '',
+    newTime: '',
+    reason: ''
   });
   const router = useRouter();
 
@@ -169,17 +180,42 @@ export default function AppointmentsPage() {
 
   const handleJoinVideoCall = (appointmentId: string) => {
     console.log('Joining video call for appointment:', appointmentId);
+    // Navigate to telemedicine page
     router.push('/telemedicine');
   };
 
-  const handleReschedule = (appointmentId: string) => {
-    console.log('Rescheduling appointment:', appointmentId);
-    alert('Reschedule appointment form would open here');
+  const handleReschedule = (appointment: Appointment) => {
+    console.log('Rescheduling appointment:', appointment.id);
+    setSelectedAppointment(appointment);
+    setRescheduleForm({
+      newDate: '',
+      newTime: '',
+      reason: ''
+    });
+    setIsRescheduleDialogOpen(true);
   };
 
-  const handleViewDetails = (appointmentId: string) => {
-    console.log('Viewing appointment details:', appointmentId);
-    alert('Appointment details would be shown here');
+  const handleRescheduleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Rescheduling appointment:', selectedAppointment?.id, rescheduleForm);
+    
+    // Here you would typically send the data to your API
+    alert('Appointment rescheduled successfully! You will receive a confirmation shortly.');
+    
+    // Reset form and close dialog
+    setRescheduleForm({
+      newDate: '',
+      newTime: '',
+      reason: ''
+    });
+    setIsRescheduleDialogOpen(false);
+    setSelectedAppointment(null);
+  };
+
+  const handleViewDetails = (appointment: Appointment) => {
+    console.log('Viewing appointment details:', appointment.id);
+    setSelectedAppointment(appointment);
+    setIsDetailsDialogOpen(true);
   };
 
   const filteredAppointments = mockAppointments.filter(appointment => {
@@ -252,16 +288,18 @@ export default function AppointmentsPage() {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => handleReschedule(appointment.id)}
+                onClick={() => handleReschedule(appointment)}
               >
+                <Edit className="w-4 h-4 mr-1" />
                 Reschedule
               </Button>
             )}
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => handleViewDetails(appointment.id)}
+              onClick={() => handleViewDetails(appointment)}
             >
+              <Eye className="w-4 h-4 mr-1" />
               View Details
             </Button>
           </div>
@@ -470,6 +508,195 @@ export default function AppointmentsPage() {
               )}
             </TabsContent>
           </Tabs>
+
+          {/* Appointment Details Dialog */}
+          <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle className="flex items-center justify-between">
+                  <span>Appointment Details</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsDetailsDialogOpen(false)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </DialogTitle>
+              </DialogHeader>
+              
+              {selectedAppointment && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="font-semibold mb-2">Appointment Information</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Type:</span>
+                          <div className="flex items-center space-x-1">
+                            {getTypeIcon(selectedAppointment.type)}
+                            <span className="capitalize">{selectedAppointment.type}</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Status:</span>
+                          <Badge className={getStatusColor(selectedAppointment.status)}>
+                            {selectedAppointment.status}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Date:</span>
+                          <span>{selectedAppointment.scheduledTime.toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Time:</span>
+                          <span>{selectedAppointment.scheduledTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Duration:</span>
+                          <span>{selectedAppointment.duration} minutes</span>
+                        </div>
+                        {selectedAppointment.roomNumber && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Location:</span>
+                            <span>{selectedAppointment.roomNumber}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-semibold mb-2">Medical Information</h3>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="text-gray-600">Reason:</span>
+                          <p className="font-medium">{selectedAppointment.reason}</p>
+                        </div>
+                        {selectedAppointment.chiefComplaint && (
+                          <div>
+                            <span className="text-gray-600">Chief Complaint:</span>
+                            <p className="font-medium">{selectedAppointment.chiefComplaint}</p>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Follow-up Required:</span>
+                          <span>{selectedAppointment.followUpRequired ? 'Yes' : 'No'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {selectedAppointment.notes && (
+                    <div>
+                      <h3 className="font-semibold mb-2">Notes</h3>
+                      <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">
+                        {selectedAppointment.notes}
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="flex space-x-3 pt-4 border-t">
+                    {selectedAppointment.status === 'scheduled' && selectedAppointment.type === 'video' && (
+                      <Button 
+                        className="bg-green-600 hover:bg-green-700"
+                        onClick={() => {
+                          handleJoinVideoCall(selectedAppointment.id);
+                          setIsDetailsDialogOpen(false);
+                        }}
+                      >
+                        <Video className="w-4 h-4 mr-2" />
+                        Join Video Call
+                      </Button>
+                    )}
+                    {selectedAppointment.status === 'scheduled' && (
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          setIsDetailsDialogOpen(false);
+                          handleReschedule(selectedAppointment);
+                        }}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Reschedule
+                      </Button>
+                    )}
+                    <Button 
+                      variant="outline"
+                      onClick={() => setIsDetailsDialogOpen(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Reschedule Dialog */}
+          <Dialog open={isRescheduleDialogOpen} onOpenChange={setIsRescheduleDialogOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Reschedule Appointment</DialogTitle>
+                <DialogDescription>
+                  Choose a new date and time for your appointment
+                </DialogDescription>
+              </DialogHeader>
+              
+              <form onSubmit={handleRescheduleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="newDate">New Date</Label>
+                    <Input
+                      id="newDate"
+                      type="date"
+                      value={rescheduleForm.newDate}
+                      onChange={(e) => setRescheduleForm(prev => ({ ...prev, newDate: e.target.value }))}
+                      min={new Date().toISOString().split('T')[0]}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="newTime">New Time</Label>
+                    <Input
+                      id="newTime"
+                      type="time"
+                      value={rescheduleForm.newTime}
+                      onChange={(e) => setRescheduleForm(prev => ({ ...prev, newTime: e.target.value }))}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="rescheduleReason">Reason for Rescheduling (Optional)</Label>
+                  <textarea
+                    id="rescheduleReason"
+                    value={rescheduleForm.reason}
+                    onChange={(e) => setRescheduleForm(prev => ({ ...prev, reason: e.target.value }))}
+                    placeholder="Please let us know why you need to reschedule..."
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <Button type="submit" className="flex-1">
+                    Reschedule Appointment
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsRescheduleDialogOpen(false);
+                      setSelectedAppointment(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </main>
       </div>
     </div>
