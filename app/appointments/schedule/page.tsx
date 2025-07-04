@@ -177,6 +177,22 @@ export default function AppointmentSchedulePage() {
     setSelectedDate(newDate);
   };
 
+  const handleNewAppointment = () => {
+    router.push('/appointments/new');
+  };
+
+  const handleCalendarView = () => {
+    router.push('/appointments/calendar');
+  };
+
+  const handleViewAppointment = (appointmentId: string) => {
+    router.push(`/appointments/${appointmentId}`);
+  };
+
+  const handleEditAppointment = (appointmentId: string) => {
+    router.push(`/appointments/${appointmentId}/edit`);
+  };
+
   const filteredAppointments = mockAppointments.filter(appointment => {
     const matchesSearch = appointment.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          appointment.reason.toLowerCase().includes(searchQuery.toLowerCase());
@@ -240,10 +256,18 @@ export default function AppointmentSchedulePage() {
         </div>
         
         <div className="flex space-x-1 ml-2">
-          <Button variant="ghost" size="sm">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => handleViewAppointment(appointment.id)}
+          >
             <Eye className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="sm">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => handleEditAppointment(appointment.id)}
+          >
             <Edit className="w-4 h-4" />
           </Button>
         </div>
@@ -274,11 +298,11 @@ export default function AppointmentSchedulePage() {
               </p>
             </div>
             <div className="flex items-center space-x-3">
-              <Button variant="outline">
+              <Button variant="outline" onClick={handleCalendarView}>
                 <Calendar className="w-4 h-4 mr-2" />
                 Calendar View
               </Button>
-              <Button>
+              <Button onClick={handleNewAppointment}>
                 <Plus className="w-4 h-4 mr-2" />
                 New Appointment
               </Button>
@@ -384,7 +408,10 @@ export default function AppointmentSchedulePage() {
                             {appointment ? (
                               <AppointmentCard appointment={appointment} />
                             ) : (
-                              <div className="h-16 border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center text-gray-400 hover:border-blue-300 hover:text-blue-500 cursor-pointer transition-colors">
+                              <div 
+                                className="h-16 border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center text-gray-400 hover:border-blue-300 hover:text-blue-500 cursor-pointer transition-colors"
+                                onClick={handleNewAppointment}
+                              >
                                 <Plus className="w-4 h-4 mr-1" />
                                 <span className="text-sm">Available</span>
                               </div>
@@ -437,11 +464,11 @@ export default function AppointmentSchedulePage() {
                   <CardTitle className="text-lg">Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button className="w-full justify-start" variant="outline">
+                  <Button className="w-full justify-start" variant="outline" onClick={handleNewAppointment}>
                     <Plus className="w-4 h-4 mr-2" />
                     Schedule Appointment
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <Button className="w-full justify-start" variant="outline" onClick={handleCalendarView}>
                     <Calendar className="w-4 h-4 mr-2" />
                     View Calendar
                   </Button>
