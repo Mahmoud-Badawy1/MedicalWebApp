@@ -32,6 +32,18 @@ interface DepartmentForm {
   status: 'active' | 'maintenance' | 'closed';
 }
 
+export async function generateStaticParams() {
+  // Return the department IDs that should be pre-rendered
+  return [
+    { departmentId: 'dept_1' },
+    { departmentId: 'dept_2' },
+    { departmentId: 'dept_3' },
+    { departmentId: 'dept_4' },
+    { departmentId: 'dept_5' },
+    { departmentId: 'dept_6' }
+  ];
+}
+
 export default function DepartmentEditPage({ params }: DepartmentEditPageProps) {
   const { user, isAuthenticated } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
